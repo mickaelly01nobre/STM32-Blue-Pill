@@ -1,0 +1,5 @@
+/home/user/STM32CubeIDE/workspace_1.16.0/Timer_Interrupt/F1_Header/Include/core_cm3.h:1511:22:__NVIC_EnableIRQ	16	static
+../Src/main.c:37:6:turnOffAllLEDs	4	static
+../Src/main.c:44:6:updateLEDs	16	static
+../Src/main.c:113:6:TIM2_IRQHandler	4	static
+../Src/main.c:124:5:main	8	static
