@@ -1,0 +1,5 @@
+core_cm3.h:1511:22:__NVIC_EnableIRQ	2
+main.c:15:5:convert_intensity	1
+main.c:20:6:USART1_IRQHandler	6
+main.c:48:6:toggle_colors	5
+main.c:69:5:main	11
