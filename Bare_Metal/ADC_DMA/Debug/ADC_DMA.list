@@ -1,0 +1,672 @@
+
+ADC_DMA.elf:     file format elf32-littlearm
+
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .isr_vector   00000130  08000000  08000000  00001000  2**0
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+  1 .text         00000364  08000130  08000130  00001130  2**2
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  2 .rodata       00000000  08000494  0800049c  0000149c  2**0
+                  CONTENTS, ALLOC, LOAD, DATA
+  3 .ARM.extab    00000000  08000494  08000494  0000149c  2**0
+                  CONTENTS
+  4 .ARM          00000000  08000494  08000494  0000149c  2**0
+                  CONTENTS
+  5 .preinit_array 00000000  08000494  0800049c  0000149c  2**0
+                  CONTENTS, ALLOC, LOAD, DATA
+  6 .init_array   00000004  08000494  08000494  00001494  2**2
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+  7 .fini_array   00000004  08000498  08000498  00001498  2**2
+                  CONTENTS, ALLOC, LOAD, READONLY, DATA
+  8 .data         00000000  20000000  20000000  0000149c  2**0
+                  CONTENTS, ALLOC, LOAD, DATA
+  9 .bss          00000024  20000000  0800049c  00002000  2**2
+                  ALLOC
+ 10 ._user_heap_stack 00000604  20000024  0800049c  00002024  2**0
+                  ALLOC
+ 11 .ARM.attributes 00000029  00000000  00000000  0000149c  2**0
+                  CONTENTS, READONLY
+ 12 .debug_info   00000509  00000000  00000000  000014c5  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 13 .debug_abbrev 00000191  00000000  00000000  000019ce  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 14 .debug_aranges 00000070  00000000  00000000  00001b60  2**3
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 15 .debug_rnglists 0000004d  00000000  00000000  00001bd0  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 16 .debug_macro  0000ff30  00000000  00000000  00001c1d  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 17 .debug_line   000006bf  00000000  00000000  00011b4d  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 18 .debug_str    000545b6  00000000  00000000  0001220c  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 19 .comment      00000043  00000000  00000000  000667c2  2**0
+                  CONTENTS, READONLY
+ 20 .debug_frame  0000010c  00000000  00000000  00066808  2**2
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+ 21 .debug_line_str 0000005a  00000000  00000000  00066914  2**0
+                  CONTENTS, READONLY, DEBUGGING, OCTETS
+
+Disassembly of section .text:
+
+08000130 <__do_global_dtors_aux>:
+ 8000130:	b510      	push	{r4, lr}
+ 8000132:	4c05      	ldr	r4, [pc, #20]	@ (8000148 <__do_global_dtors_aux+0x18>)
+ 8000134:	7823      	ldrb	r3, [r4, #0]
+ 8000136:	b933      	cbnz	r3, 8000146 <__do_global_dtors_aux+0x16>
+ 8000138:	4b04      	ldr	r3, [pc, #16]	@ (800014c <__do_global_dtors_aux+0x1c>)
+ 800013a:	b113      	cbz	r3, 8000142 <__do_global_dtors_aux+0x12>
+ 800013c:	4804      	ldr	r0, [pc, #16]	@ (8000150 <__do_global_dtors_aux+0x20>)
+ 800013e:	f3af 8000 	nop.w
+ 8000142:	2301      	movs	r3, #1
+ 8000144:	7023      	strb	r3, [r4, #0]
+ 8000146:	bd10      	pop	{r4, pc}
+ 8000148:	20000000 	.word	0x20000000
+ 800014c:	00000000 	.word	0x00000000
+ 8000150:	0800047c 	.word	0x0800047c
+
+08000154 <frame_dummy>:
+ 8000154:	b508      	push	{r3, lr}
+ 8000156:	4b03      	ldr	r3, [pc, #12]	@ (8000164 <frame_dummy+0x10>)
+ 8000158:	b11b      	cbz	r3, 8000162 <frame_dummy+0xe>
+ 800015a:	4903      	ldr	r1, [pc, #12]	@ (8000168 <frame_dummy+0x14>)
+ 800015c:	4803      	ldr	r0, [pc, #12]	@ (800016c <frame_dummy+0x18>)
+ 800015e:	f3af 8000 	nop.w
+ 8000162:	bd08      	pop	{r3, pc}
+ 8000164:	00000000 	.word	0x00000000
+ 8000168:	20000004 	.word	0x20000004
+ 800016c:	0800047c 	.word	0x0800047c
+
+08000170 <ADC_Init>:
+
+uint16_t adcValues[3];  // Variável global para armazenar os valores do ADC via DMA (dois canais)
+
+#include "stm32f1xx.h"
+void ADC_Init (void)
+{
+ 8000170:	b480      	push	{r7}
+ 8000172:	af00      	add	r7, sp, #0
+		7. Set the Respective GPIO PINs in the Analog Mode
+		8. Enable DMA for ADC
+		************************************************/
+
+		// 1. Enable ADC and GPIO clock
+		RCC->APB2ENR |= (1<<9);
+ 8000174:	4b30      	ldr	r3, [pc, #192]	@ (8000238 <ADC_Init+0xc8>)
+ 8000176:	699b      	ldr	r3, [r3, #24]
+ 8000178:	4a2f      	ldr	r2, [pc, #188]	@ (8000238 <ADC_Init+0xc8>)
+ 800017a:	f443 7300 	orr.w	r3, r3, #512	@ 0x200
+ 800017e:	6193      	str	r3, [r2, #24]
+		RCC->APB2ENR |= (1<<2); // GPIOA
+ 8000180:	4b2d      	ldr	r3, [pc, #180]	@ (8000238 <ADC_Init+0xc8>)
+ 8000182:	699b      	ldr	r3, [r3, #24]
+ 8000184:	4a2c      	ldr	r2, [pc, #176]	@ (8000238 <ADC_Init+0xc8>)
+ 8000186:	f043 0304 	orr.w	r3, r3, #4
+ 800018a:	6193      	str	r3, [r2, #24]
+
+		//2. Set the prescalar in the Clock configuration register (RCC_CFGR)
+		RCC->CFGR |= (2<<14);  // Prescaler 6, ADC Clock = 72/6 = 12 MHz
+ 800018c:	4b2a      	ldr	r3, [pc, #168]	@ (8000238 <ADC_Init+0xc8>)
+ 800018e:	685b      	ldr	r3, [r3, #4]
+ 8000190:	4a29      	ldr	r2, [pc, #164]	@ (8000238 <ADC_Init+0xc8>)
+ 8000192:	f443 4300 	orr.w	r3, r3, #32768	@ 0x8000
+ 8000196:	6053      	str	r3, [r2, #4]
+
+		//3. Set the Scan Mode and Resolution in the Control Register 1 (CR1)
+		ADC1->CR1 = (1<<8);    // SCAN mode enabled
+ 8000198:	4b28      	ldr	r3, [pc, #160]	@ (800023c <ADC_Init+0xcc>)
+ 800019a:	f44f 7280 	mov.w	r2, #256	@ 0x100
+ 800019e:	605a      	str	r2, [r3, #4]
+		 * No modo de conversão contínua, o ADC inicia outra conversão assim que termina uma.
+		 * Este modo é iniciado por um gatilho externo ou pela configuração do bit ADON no registrador
+		 * ADC_CR2, enquanto o bit CONT é 1.
+		 * */
+		//4. Set the Continuous Conversion, EOC, and Data Alignment in Control Reg 2 (CR2)
+			ADC1->CR2 = (1<<1);     // enable continuous conversion mode
+ 80001a0:	4b26      	ldr	r3, [pc, #152]	@ (800023c <ADC_Init+0xcc>)
+ 80001a2:	2202      	movs	r2, #2
+ 80001a4:	609a      	str	r2, [r3, #8]
+			// EOC after each conversion by default
+			ADC1->CR2 |= (7<<17);  // External Event selection pointed to SWSTART bit
+ 80001a6:	4b25      	ldr	r3, [pc, #148]	@ (800023c <ADC_Init+0xcc>)
+ 80001a8:	689b      	ldr	r3, [r3, #8]
+ 80001aa:	4a24      	ldr	r2, [pc, #144]	@ (800023c <ADC_Init+0xcc>)
+ 80001ac:	f443 2360 	orr.w	r3, r3, #917504	@ 0xe0000
+ 80001b0:	6093      	str	r3, [r2, #8]
+			ADC1->CR2 &= ~(1<<11);   // Data Alignment RIGHT
+ 80001b2:	4b22      	ldr	r3, [pc, #136]	@ (800023c <ADC_Init+0xcc>)
+ 80001b4:	689b      	ldr	r3, [r3, #8]
+ 80001b6:	4a21      	ldr	r2, [pc, #132]	@ (800023c <ADC_Init+0xcc>)
+ 80001b8:	f423 6300 	bic.w	r3, r3, #2048	@ 0x800
+ 80001bc:	6093      	str	r3, [r2, #8]
+
+		//Cada canal pode ser definido com um tempo de amostragem/frequência diferente.
+		//	Isso pode ser controlado no registro de tempo de amostragem do ADC
+		//5. Set the Sampling Time for the channels
+			ADC1->SMPR2 &= ~((7<<3) | (7<<6)| (7<<12));  // Sampling time of 1.5 cycles for channel 1 and channel 4 and channel 2
+ 80001be:	4b1f      	ldr	r3, [pc, #124]	@ (800023c <ADC_Init+0xcc>)
+ 80001c0:	691b      	ldr	r3, [r3, #16]
+ 80001c2:	4a1e      	ldr	r2, [pc, #120]	@ (800023c <ADC_Init+0xcc>)
+ 80001c4:	f423 43e3 	bic.w	r3, r3, #29056	@ 0x7180
+ 80001c8:	f023 0378 	bic.w	r3, r3, #120	@ 0x78
+ 80001cc:	6113      	str	r3, [r2, #16]
+
+		// L pode ser usado para definir o número de canais.
+		//	Podemos definir o número de canais entre 1 e 16.
+		//6. Set the Regular channel sequence length in ADC_SQR1
+			ADC1->SQR1 |= (3<<20);   // SQR1_L =3 for 16 conversions
+ 80001ce:	4b1b      	ldr	r3, [pc, #108]	@ (800023c <ADC_Init+0xcc>)
+ 80001d0:	6adb      	ldr	r3, [r3, #44]	@ 0x2c
+ 80001d2:	4a1a      	ldr	r2, [pc, #104]	@ (800023c <ADC_Init+0xcc>)
+ 80001d4:	f443 1340 	orr.w	r3, r3, #3145728	@ 0x300000
+ 80001d8:	62d3      	str	r3, [r2, #44]	@ 0x2c
+
+		//7. Set the Respective GPIO PINs in the Analog Mode
+			GPIOA->CRL &= ~(0xf<<4);  // analog mode for PA 1
+ 80001da:	4b19      	ldr	r3, [pc, #100]	@ (8000240 <ADC_Init+0xd0>)
+ 80001dc:	681b      	ldr	r3, [r3, #0]
+ 80001de:	4a18      	ldr	r2, [pc, #96]	@ (8000240 <ADC_Init+0xd0>)
+ 80001e0:	f023 03f0 	bic.w	r3, r3, #240	@ 0xf0
+ 80001e4:	6013      	str	r3, [r2, #0]
+			GPIOA->CRL &= ~(0xf<<16); // analog mode for PA 4
+ 80001e6:	4b16      	ldr	r3, [pc, #88]	@ (8000240 <ADC_Init+0xd0>)
+ 80001e8:	681b      	ldr	r3, [r3, #0]
+ 80001ea:	4a15      	ldr	r2, [pc, #84]	@ (8000240 <ADC_Init+0xd0>)
+ 80001ec:	f423 2370 	bic.w	r3, r3, #983040	@ 0xf0000
+ 80001f0:	6013      	str	r3, [r2, #0]
+			GPIOA->CRL &= ~(0xf<<8); // analog mode for PA 2
+ 80001f2:	4b13      	ldr	r3, [pc, #76]	@ (8000240 <ADC_Init+0xd0>)
+ 80001f4:	681b      	ldr	r3, [r3, #0]
+ 80001f6:	4a12      	ldr	r2, [pc, #72]	@ (8000240 <ADC_Init+0xd0>)
+ 80001f8:	f423 6370 	bic.w	r3, r3, #3840	@ 0xf00
+ 80001fc:	6013      	str	r3, [r2, #0]
+
+		//8. Enable DMA for ADC
+		ADC1->CR2 |= (1<<8);
+ 80001fe:	4b0f      	ldr	r3, [pc, #60]	@ (800023c <ADC_Init+0xcc>)
+ 8000200:	689b      	ldr	r3, [r3, #8]
+ 8000202:	4a0e      	ldr	r2, [pc, #56]	@ (800023c <ADC_Init+0xcc>)
+ 8000204:	f443 7380 	orr.w	r3, r3, #256	@ 0x100
+ 8000208:	6093      	str	r3, [r2, #8]
+
+		// Também precisamos definir a sequência para a conversão.
+		// Como qual canal será convertido primeiro, qual será convertido em segundo,
+		// e assim por diante.
+		// Channel Sequence
+		ADC1->SQR3 |= (1<<0);  // SEQ1 for Channel 1
+ 800020a:	4b0c      	ldr	r3, [pc, #48]	@ (800023c <ADC_Init+0xcc>)
+ 800020c:	6b5b      	ldr	r3, [r3, #52]	@ 0x34
+ 800020e:	4a0b      	ldr	r2, [pc, #44]	@ (800023c <ADC_Init+0xcc>)
+ 8000210:	f043 0301 	orr.w	r3, r3, #1
+ 8000214:	6353      	str	r3, [r2, #52]	@ 0x34
+		ADC1->SQR3 |= (4<<5);  // SEQ2 for CHannel 4
+ 8000216:	4b09      	ldr	r3, [pc, #36]	@ (800023c <ADC_Init+0xcc>)
+ 8000218:	6b5b      	ldr	r3, [r3, #52]	@ 0x34
+ 800021a:	4a08      	ldr	r2, [pc, #32]	@ (800023c <ADC_Init+0xcc>)
+ 800021c:	f043 0380 	orr.w	r3, r3, #128	@ 0x80
+ 8000220:	6353      	str	r3, [r2, #52]	@ 0x34
+		ADC1->SQR3 |= (2<<10);  // SEQ3 for CHannel 2
+ 8000222:	4b06      	ldr	r3, [pc, #24]	@ (800023c <ADC_Init+0xcc>)
+ 8000224:	6b5b      	ldr	r3, [r3, #52]	@ 0x34
+ 8000226:	4a05      	ldr	r2, [pc, #20]	@ (800023c <ADC_Init+0xcc>)
+ 8000228:	f443 6300 	orr.w	r3, r3, #2048	@ 0x800
+ 800022c:	6353      	str	r3, [r2, #52]	@ 0x34
+}
+ 800022e:	bf00      	nop
+ 8000230:	46bd      	mov	sp, r7
+ 8000232:	bc80      	pop	{r7}
+ 8000234:	4770      	bx	lr
+ 8000236:	bf00      	nop
+ 8000238:	40021000 	.word	0x40021000
+ 800023c:	40012400 	.word	0x40012400
+ 8000240:	40010800 	.word	0x40010800
+
+08000244 <ADC_Enable>:
+ * certas coisas enquanto o ADC estiver habilitado.
+ *
+ */
+
+void ADC_Enable (void)
+{
+ 8000244:	b480      	push	{r7}
+ 8000246:	b083      	sub	sp, #12
+ 8000248:	af00      	add	r7, sp, #0
+	/************** STEPS TO FOLLOW *****************
+	1. Enable the ADC by setting ADON bit in CR2
+	2. Wait for ADC to stabilize (approx 10us)
+	************************************************/
+	ADC1->CR2 |= 1<<0;   // ADON =1 enable ADC1
+ 800024a:	4b0a      	ldr	r3, [pc, #40]	@ (8000274 <ADC_Enable+0x30>)
+ 800024c:	689b      	ldr	r3, [r3, #8]
+ 800024e:	4a09      	ldr	r2, [pc, #36]	@ (8000274 <ADC_Enable+0x30>)
+ 8000250:	f043 0301 	orr.w	r3, r3, #1
+ 8000254:	6093      	str	r3, [r2, #8]
+
+	uint32_t delay = 10000;
+ 8000256:	f242 7310 	movw	r3, #10000	@ 0x2710
+ 800025a:	607b      	str	r3, [r7, #4]
+	while (delay--);
+ 800025c:	bf00      	nop
+ 800025e:	687b      	ldr	r3, [r7, #4]
+ 8000260:	1e5a      	subs	r2, r3, #1
+ 8000262:	607a      	str	r2, [r7, #4]
+ 8000264:	2b00      	cmp	r3, #0
+ 8000266:	d1fa      	bne.n	800025e <ADC_Enable+0x1a>
+}
+ 8000268:	bf00      	nop
+ 800026a:	bf00      	nop
+ 800026c:	370c      	adds	r7, #12
+ 800026e:	46bd      	mov	sp, r7
+ 8000270:	bc80      	pop	{r7}
+ 8000272:	4770      	bx	lr
+ 8000274:	40012400 	.word	0x40012400
+
+08000278 <ADC_Start>:
+
+void ADC_Start(void)
+{
+ 8000278:	b480      	push	{r7}
+ 800027a:	af00      	add	r7, sp, #0
+	1. Clear the Status register
+	2. Start the Conversion by Setting the SWSTART bit in CR2
+
+	 Iniciaremos o ADC para iniciar a conversão dos canais selecionados.
+	*************************************************/
+	ADC1->SR = 0;                      // Clear Status register
+ 800027c:	4b09      	ldr	r3, [pc, #36]	@ (80002a4 <ADC_Start+0x2c>)
+ 800027e:	2200      	movs	r2, #0
+ 8000280:	601a      	str	r2, [r3, #0]
+	ADC1->CR2 |= (1<<20);              // Conversion on external event enabled
+ 8000282:	4b08      	ldr	r3, [pc, #32]	@ (80002a4 <ADC_Start+0x2c>)
+ 8000284:	689b      	ldr	r3, [r3, #8]
+ 8000286:	4a07      	ldr	r2, [pc, #28]	@ (80002a4 <ADC_Start+0x2c>)
+ 8000288:	f443 1380 	orr.w	r3, r3, #1048576	@ 0x100000
+ 800028c:	6093      	str	r3, [r2, #8]
+	ADC1->CR2 |= 1<<22;                // Start conversion
+ 800028e:	4b05      	ldr	r3, [pc, #20]	@ (80002a4 <ADC_Start+0x2c>)
+ 8000290:	689b      	ldr	r3, [r3, #8]
+ 8000292:	4a04      	ldr	r2, [pc, #16]	@ (80002a4 <ADC_Start+0x2c>)
+ 8000294:	f443 0380 	orr.w	r3, r3, #4194304	@ 0x400000
+ 8000298:	6093      	str	r3, [r2, #8]
+}
+ 800029a:	bf00      	nop
+ 800029c:	46bd      	mov	sp, r7
+ 800029e:	bc80      	pop	{r7}
+ 80002a0:	4770      	bx	lr
+ 80002a2:	bf00      	nop
+ 80002a4:	40012400 	.word	0x40012400
+
+080002a8 <main>:
+    TIM3->CCR3 = green;
+    TIM3->CCR4 = blue;
+}
+
+int main(void)
+{
+ 80002a8:	b580      	push	{r7, lr}
+ 80002aa:	b082      	sub	sp, #8
+ 80002ac:	af00      	add	r7, sp, #0
+	//habilite para usa o GPIOB clock
+	RCC->APB2ENR |= (1 << 3);
+ 80002ae:	4b47      	ldr	r3, [pc, #284]	@ (80003cc <main+0x124>)
+ 80002b0:	699b      	ldr	r3, [r3, #24]
+ 80002b2:	4a46      	ldr	r2, [pc, #280]	@ (80003cc <main+0x124>)
+ 80002b4:	f043 0308 	orr.w	r3, r3, #8
+ 80002b8:	6193      	str	r3, [r2, #24]
+
+    // Configura os pinos GPIOB 8, 9 e 10 como saída
+    GPIOB->CRH &= 0xFFFFF000; // Limpa os bits de configuração dos pinos 8, 9 e 10
+ 80002ba:	4b45      	ldr	r3, [pc, #276]	@ (80003d0 <main+0x128>)
+ 80002bc:	685b      	ldr	r3, [r3, #4]
+ 80002be:	4a44      	ldr	r2, [pc, #272]	@ (80003d0 <main+0x128>)
+ 80002c0:	f423 637f 	bic.w	r3, r3, #4080	@ 0xff0
+ 80002c4:	f023 030f 	bic.w	r3, r3, #15
+ 80002c8:	6053      	str	r3, [r2, #4]
+    GPIOB->CRH |= 0x00000222; // Configura os pinos 8, 9 e 10 como saída push-pull, máxima velocidade de 2 MHz
+ 80002ca:	4b41      	ldr	r3, [pc, #260]	@ (80003d0 <main+0x128>)
+ 80002cc:	685b      	ldr	r3, [r3, #4]
+ 80002ce:	4a40      	ldr	r2, [pc, #256]	@ (80003d0 <main+0x128>)
+ 80002d0:	f443 7308 	orr.w	r3, r3, #544	@ 0x220
+ 80002d4:	f043 0302 	orr.w	r3, r3, #2
+ 80002d8:	6053      	str	r3, [r2, #4]
+
+	ADC_Init ();
+ 80002da:	f7ff ff49 	bl	8000170 <ADC_Init>
+	ADC_Enable ();
+ 80002de:	f7ff ffb1 	bl	8000244 <ADC_Enable>
+
+	13.4.3 DMA channel x configuration register (DMA_CCRx) (x = 1..7, where x = channel number)
+	************************************************/
+
+	// 1. Enable DMA1 Clock
+	RCC->AHBENR |= 1<<0;
+ 80002e2:	4b3a      	ldr	r3, [pc, #232]	@ (80003cc <main+0x124>)
+ 80002e4:	695b      	ldr	r3, [r3, #20]
+ 80002e6:	4a39      	ldr	r2, [pc, #228]	@ (80003cc <main+0x124>)
+ 80002e8:	f043 0301 	orr.w	r3, r3, #1
+ 80002ec:	6153      	str	r3, [r2, #20]
+
+	// 2. Set the Data Direction
+//	DMA1_Channel7->CCR |= (1<<4);   // Read From Memory
+	DMA1_Channel1->CCR &= ~(1<<4);   // Read From Peripheral
+ 80002ee:	4b39      	ldr	r3, [pc, #228]	@ (80003d4 <main+0x12c>)
+ 80002f0:	681b      	ldr	r3, [r3, #0]
+ 80002f2:	4a38      	ldr	r2, [pc, #224]	@ (80003d4 <main+0x12c>)
+ 80002f4:	f023 0310 	bic.w	r3, r3, #16
+ 80002f8:	6013      	str	r3, [r2, #0]
+
+	// 2. Enable the circular mode (CIRC)
+	DMA1_Channel1->CCR |= 1<<5;
+ 80002fa:	4b36      	ldr	r3, [pc, #216]	@ (80003d4 <main+0x12c>)
+ 80002fc:	681b      	ldr	r3, [r3, #0]
+ 80002fe:	4a35      	ldr	r2, [pc, #212]	@ (80003d4 <main+0x12c>)
+ 8000300:	f043 0320 	orr.w	r3, r3, #32
+ 8000304:	6013      	str	r3, [r2, #0]
+
+	// 3. Enable the Memory Increment (MINC)
+	DMA1_Channel1->CCR |= 1<<7;
+ 8000306:	4b33      	ldr	r3, [pc, #204]	@ (80003d4 <main+0x12c>)
+ 8000308:	681b      	ldr	r3, [r3, #0]
+ 800030a:	4a32      	ldr	r2, [pc, #200]	@ (80003d4 <main+0x12c>)
+ 800030c:	f043 0380 	orr.w	r3, r3, #128	@ 0x80
+ 8000310:	6013      	str	r3, [r2, #0]
+
+	// 4. Set the Peripheral data size (PSIZE)
+	DMA1_Channel1->CCR |= (1<<8);  // 01 : 8 Bit Data
+ 8000312:	4b30      	ldr	r3, [pc, #192]	@ (80003d4 <main+0x12c>)
+ 8000314:	681b      	ldr	r3, [r3, #0]
+ 8000316:	4a2f      	ldr	r2, [pc, #188]	@ (80003d4 <main+0x12c>)
+ 8000318:	f443 7380 	orr.w	r3, r3, #256	@ 0x100
+ 800031c:	6013      	str	r3, [r2, #0]
+
+	// 5. Set the Memory data size (MSIZE)
+	DMA1_Channel1->CCR |= (1<<10);  // 01 : 8 Bit Data
+ 800031e:	4b2d      	ldr	r3, [pc, #180]	@ (80003d4 <main+0x12c>)
+ 8000320:	681b      	ldr	r3, [r3, #0]
+ 8000322:	4a2c      	ldr	r2, [pc, #176]	@ (80003d4 <main+0x12c>)
+ 8000324:	f443 6380 	orr.w	r3, r3, #1024	@ 0x400
+ 8000328:	6013      	str	r3, [r2, #0]
+	 * Este registrador decrementa após cada transferência de DMA. Quando a transferência é concluída, este registrador pode permanecer
+	 * em zero ou ser recarregado automaticamente pelo valor previamente programado, se o canal estiver configurado no modo de recarga automática.
+	 * Se este registrador estiver em zero, nenhuma transação pode ser atendida, independentemente de o canal estar ativado ou não.
+	 *
+	 */
+	DMA1_Channel1->CNDTR = 3;   // Set the size of the transfer
+ 800032a:	4b2a      	ldr	r3, [pc, #168]	@ (80003d4 <main+0x12c>)
+ 800032c:	2203      	movs	r2, #3
+ 800032e:	605a      	str	r2, [r3, #4]
+
+	// Endereço base do registrador de dados do periférico de/para o qual os dados serão lidos/escritos.
+	DMA1_Channel1->CPAR = (uint32_t)&ADC1->DR;  // Source address is peripheral address
+ 8000330:	4b28      	ldr	r3, [pc, #160]	@ (80003d4 <main+0x12c>)
+ 8000332:	4a29      	ldr	r2, [pc, #164]	@ (80003d8 <main+0x130>)
+ 8000334:	609a      	str	r2, [r3, #8]
+
+	// Base address of the memory area from/to which the data will be read/written
+	DMA1_Channel1->CMAR = (uint32_t)&adcValues;  // Destination Address is memory address
+ 8000336:	4b27      	ldr	r3, [pc, #156]	@ (80003d4 <main+0x12c>)
+ 8000338:	4a28      	ldr	r2, [pc, #160]	@ (80003dc <main+0x134>)
+ 800033a:	60da      	str	r2, [r3, #12]
+
+	// Enable the DMA Stream
+	DMA1_Channel1->CCR |= (1<<0);  // EN =1
+ 800033c:	4b25      	ldr	r3, [pc, #148]	@ (80003d4 <main+0x12c>)
+ 800033e:	681b      	ldr	r3, [r3, #0]
+ 8000340:	4a24      	ldr	r2, [pc, #144]	@ (80003d4 <main+0x12c>)
+ 8000342:	f043 0301 	orr.w	r3, r3, #1
+ 8000346:	6013      	str	r3, [r2, #0]
+
+	ADC_Start ();
+ 8000348:	f7ff ff96 	bl	8000278 <ADC_Start>
+
+    // Define um limiar para os valores do ADC (ajuste conforme necessário)
+    uint16_t limiar1 = 2000;  // Limiar para o canal 1 (PA1)
+ 800034c:	f44f 63fa 	mov.w	r3, #2000	@ 0x7d0
+ 8000350:	80fb      	strh	r3, [r7, #6]
+    uint16_t limiar2 = 2500;  // Limiar para o canal 4 (PA4)
+ 8000352:	f640 13c4 	movw	r3, #2500	@ 0x9c4
+ 8000356:	80bb      	strh	r3, [r7, #4]
+    uint16_t limiar3 = 1500;  // Limiar para o canal 2 (PA2)
+ 8000358:	f240 53dc 	movw	r3, #1500	@ 0x5dc
+ 800035c:	807b      	strh	r3, [r7, #2]
+
+
+    while (1)
+    {
+    	// Verificar o valor do primeiro ADC (PA1) e acionar apenas o LED correspondente (PB8)
+    		if (adcValues[0] > limiar1)
+ 800035e:	4b1f      	ldr	r3, [pc, #124]	@ (80003dc <main+0x134>)
+ 8000360:	881b      	ldrh	r3, [r3, #0]
+ 8000362:	88fa      	ldrh	r2, [r7, #6]
+ 8000364:	429a      	cmp	r2, r3
+ 8000366:	d206      	bcs.n	8000376 <main+0xce>
+    		{
+    			GPIOB->BSRR |= (1 << 8); // Acender LED no PB8
+ 8000368:	4b19      	ldr	r3, [pc, #100]	@ (80003d0 <main+0x128>)
+ 800036a:	691b      	ldr	r3, [r3, #16]
+ 800036c:	4a18      	ldr	r2, [pc, #96]	@ (80003d0 <main+0x128>)
+ 800036e:	f443 7380 	orr.w	r3, r3, #256	@ 0x100
+ 8000372:	6113      	str	r3, [r2, #16]
+ 8000374:	e005      	b.n	8000382 <main+0xda>
+    		}
+    		else
+    		{
+    			GPIOB->BRR |= (1 << 8); // Apagar LED no PB8
+ 8000376:	4b16      	ldr	r3, [pc, #88]	@ (80003d0 <main+0x128>)
+ 8000378:	695b      	ldr	r3, [r3, #20]
+ 800037a:	4a15      	ldr	r2, [pc, #84]	@ (80003d0 <main+0x128>)
+ 800037c:	f443 7380 	orr.w	r3, r3, #256	@ 0x100
+ 8000380:	6153      	str	r3, [r2, #20]
+    		}
+
+    		// Verificar o valor do segundo ADC (PA4) e acionar apenas o LED correspondente (PB9)
+    		if (adcValues[1] > limiar2)
+ 8000382:	4b16      	ldr	r3, [pc, #88]	@ (80003dc <main+0x134>)
+ 8000384:	885b      	ldrh	r3, [r3, #2]
+ 8000386:	88ba      	ldrh	r2, [r7, #4]
+ 8000388:	429a      	cmp	r2, r3
+ 800038a:	d206      	bcs.n	800039a <main+0xf2>
+    		{
+    			GPIOB->BSRR |= (1 << 9); // Acender LED no PB9
+ 800038c:	4b10      	ldr	r3, [pc, #64]	@ (80003d0 <main+0x128>)
+ 800038e:	691b      	ldr	r3, [r3, #16]
+ 8000390:	4a0f      	ldr	r2, [pc, #60]	@ (80003d0 <main+0x128>)
+ 8000392:	f443 7300 	orr.w	r3, r3, #512	@ 0x200
+ 8000396:	6113      	str	r3, [r2, #16]
+ 8000398:	e005      	b.n	80003a6 <main+0xfe>
+    		}
+    		else
+    		{
+    			GPIOB->BRR |= (1 << 9); // Apagar LED no PB9
+ 800039a:	4b0d      	ldr	r3, [pc, #52]	@ (80003d0 <main+0x128>)
+ 800039c:	695b      	ldr	r3, [r3, #20]
+ 800039e:	4a0c      	ldr	r2, [pc, #48]	@ (80003d0 <main+0x128>)
+ 80003a0:	f443 7300 	orr.w	r3, r3, #512	@ 0x200
+ 80003a4:	6153      	str	r3, [r2, #20]
+    		}
+    		// Verificar o valor do segundo ADC (PA4) e acionar apenas o LED correspondente (PB9)
+    		if (adcValues[2] > limiar3)
+ 80003a6:	4b0d      	ldr	r3, [pc, #52]	@ (80003dc <main+0x134>)
+ 80003a8:	889b      	ldrh	r3, [r3, #4]
+ 80003aa:	887a      	ldrh	r2, [r7, #2]
+ 80003ac:	429a      	cmp	r2, r3
+ 80003ae:	d206      	bcs.n	80003be <main+0x116>
+    		{
+    			GPIOB->BSRR |= (1 << 10); // Acender LED no PB9
+ 80003b0:	4b07      	ldr	r3, [pc, #28]	@ (80003d0 <main+0x128>)
+ 80003b2:	691b      	ldr	r3, [r3, #16]
+ 80003b4:	4a06      	ldr	r2, [pc, #24]	@ (80003d0 <main+0x128>)
+ 80003b6:	f443 6380 	orr.w	r3, r3, #1024	@ 0x400
+ 80003ba:	6113      	str	r3, [r2, #16]
+ 80003bc:	e7cf      	b.n	800035e <main+0xb6>
+    		}
+    		else
+    		{
+    			GPIOB->BRR |= (1 << 10); // Apagar LED no PB9
+ 80003be:	4b04      	ldr	r3, [pc, #16]	@ (80003d0 <main+0x128>)
+ 80003c0:	695b      	ldr	r3, [r3, #20]
+ 80003c2:	4a03      	ldr	r2, [pc, #12]	@ (80003d0 <main+0x128>)
+ 80003c4:	f443 6380 	orr.w	r3, r3, #1024	@ 0x400
+ 80003c8:	6153      	str	r3, [r2, #20]
+    		if (adcValues[0] > limiar1)
+ 80003ca:	e7c8      	b.n	800035e <main+0xb6>
+ 80003cc:	40021000 	.word	0x40021000
+ 80003d0:	40010c00 	.word	0x40010c00
+ 80003d4:	40020008 	.word	0x40020008
+ 80003d8:	4001244c 	.word	0x4001244c
+ 80003dc:	2000001c 	.word	0x2000001c
+
+080003e0 <Reset_Handler>:
+
+  .section .text.Reset_Handler
+  .weak Reset_Handler
+  .type Reset_Handler, %function
+Reset_Handler:
+  ldr   r0, =_estack
+ 80003e0:	480d      	ldr	r0, [pc, #52]	@ (8000418 <LoopForever+0x2>)
+  mov   sp, r0          /* set stack pointer */
+ 80003e2:	4685      	mov	sp, r0
+/* Call the clock system initialization function.*/
+  bl  SystemInit
+ 80003e4:	f3af 8000 	nop.w
+
+/* Copy the data segment initializers from flash to SRAM */
+  ldr r0, =_sdata
+ 80003e8:	480c      	ldr	r0, [pc, #48]	@ (800041c <LoopForever+0x6>)
+  ldr r1, =_edata
+ 80003ea:	490d      	ldr	r1, [pc, #52]	@ (8000420 <LoopForever+0xa>)
+  ldr r2, =_sidata
+ 80003ec:	4a0d      	ldr	r2, [pc, #52]	@ (8000424 <LoopForever+0xe>)
+  movs r3, #0
+ 80003ee:	2300      	movs	r3, #0
+  b LoopCopyDataInit
+ 80003f0:	e002      	b.n	80003f8 <LoopCopyDataInit>
+
+080003f2 <CopyDataInit>:
+
+CopyDataInit:
+  ldr r4, [r2, r3]
+ 80003f2:	58d4      	ldr	r4, [r2, r3]
+  str r4, [r0, r3]
+ 80003f4:	50c4      	str	r4, [r0, r3]
+  adds r3, r3, #4
+ 80003f6:	3304      	adds	r3, #4
+
+080003f8 <LoopCopyDataInit>:
+
+LoopCopyDataInit:
+  adds r4, r0, r3
+ 80003f8:	18c4      	adds	r4, r0, r3
+  cmp r4, r1
+ 80003fa:	428c      	cmp	r4, r1
+  bcc CopyDataInit
+ 80003fc:	d3f9      	bcc.n	80003f2 <CopyDataInit>
+
+/* Zero fill the bss segment. */
+  ldr r2, =_sbss
+ 80003fe:	4a0a      	ldr	r2, [pc, #40]	@ (8000428 <LoopForever+0x12>)
+  ldr r4, =_ebss
+ 8000400:	4c0a      	ldr	r4, [pc, #40]	@ (800042c <LoopForever+0x16>)
+  movs r3, #0
+ 8000402:	2300      	movs	r3, #0
+  b LoopFillZerobss
+ 8000404:	e001      	b.n	800040a <LoopFillZerobss>
+
+08000406 <FillZerobss>:
+
+FillZerobss:
+  str  r3, [r2]
+ 8000406:	6013      	str	r3, [r2, #0]
+  adds r2, r2, #4
+ 8000408:	3204      	adds	r2, #4
+
+0800040a <LoopFillZerobss>:
+
+LoopFillZerobss:
+  cmp r2, r4
+ 800040a:	42a2      	cmp	r2, r4
+  bcc FillZerobss
+ 800040c:	d3fb      	bcc.n	8000406 <FillZerobss>
+
+/* Call static constructors */
+  bl __libc_init_array
+ 800040e:	f000 f811 	bl	8000434 <__libc_init_array>
+/* Call the application's entry point.*/
+  bl main
+ 8000412:	f7ff ff49 	bl	80002a8 <main>
+
+08000416 <LoopForever>:
+
+LoopForever:
+  b LoopForever
+ 8000416:	e7fe      	b.n	8000416 <LoopForever>
+  ldr   r0, =_estack
+ 8000418:	20005000 	.word	0x20005000
+  ldr r0, =_sdata
+ 800041c:	20000000 	.word	0x20000000
+  ldr r1, =_edata
+ 8000420:	20000000 	.word	0x20000000
+  ldr r2, =_sidata
+ 8000424:	0800049c 	.word	0x0800049c
+  ldr r2, =_sbss
+ 8000428:	20000000 	.word	0x20000000
+  ldr r4, =_ebss
+ 800042c:	20000024 	.word	0x20000024
+
+08000430 <ADC1_2_IRQHandler>:
+ * @retval : None
+*/
+  .section .text.Default_Handler,"ax",%progbits
+Default_Handler:
+Infinite_Loop:
+  b Infinite_Loop
+ 8000430:	e7fe      	b.n	8000430 <ADC1_2_IRQHandler>
+	...
+
+08000434 <__libc_init_array>:
+ 8000434:	b570      	push	{r4, r5, r6, lr}
+ 8000436:	2600      	movs	r6, #0
+ 8000438:	4d0c      	ldr	r5, [pc, #48]	@ (800046c <__libc_init_array+0x38>)
+ 800043a:	4c0d      	ldr	r4, [pc, #52]	@ (8000470 <__libc_init_array+0x3c>)
+ 800043c:	1b64      	subs	r4, r4, r5
+ 800043e:	10a4      	asrs	r4, r4, #2
+ 8000440:	42a6      	cmp	r6, r4
+ 8000442:	d109      	bne.n	8000458 <__libc_init_array+0x24>
+ 8000444:	f000 f81a 	bl	800047c <_init>
+ 8000448:	2600      	movs	r6, #0
+ 800044a:	4d0a      	ldr	r5, [pc, #40]	@ (8000474 <__libc_init_array+0x40>)
+ 800044c:	4c0a      	ldr	r4, [pc, #40]	@ (8000478 <__libc_init_array+0x44>)
+ 800044e:	1b64      	subs	r4, r4, r5
+ 8000450:	10a4      	asrs	r4, r4, #2
+ 8000452:	42a6      	cmp	r6, r4
+ 8000454:	d105      	bne.n	8000462 <__libc_init_array+0x2e>
+ 8000456:	bd70      	pop	{r4, r5, r6, pc}
+ 8000458:	f855 3b04 	ldr.w	r3, [r5], #4
+ 800045c:	4798      	blx	r3
+ 800045e:	3601      	adds	r6, #1
+ 8000460:	e7ee      	b.n	8000440 <__libc_init_array+0xc>
+ 8000462:	f855 3b04 	ldr.w	r3, [r5], #4
+ 8000466:	4798      	blx	r3
+ 8000468:	3601      	adds	r6, #1
+ 800046a:	e7f2      	b.n	8000452 <__libc_init_array+0x1e>
+ 800046c:	08000494 	.word	0x08000494
+ 8000470:	08000494 	.word	0x08000494
+ 8000474:	08000494 	.word	0x08000494
+ 8000478:	08000498 	.word	0x08000498
+
+0800047c <_init>:
+ 800047c:	b5f8      	push	{r3, r4, r5, r6, r7, lr}
+ 800047e:	bf00      	nop
+ 8000480:	bcf8      	pop	{r3, r4, r5, r6, r7}
+ 8000482:	bc08      	pop	{r3}
+ 8000484:	469e      	mov	lr, r3
+ 8000486:	4770      	bx	lr
+
+08000488 <_fini>:
+ 8000488:	b5f8      	push	{r3, r4, r5, r6, r7, lr}
+ 800048a:	bf00      	nop
+ 800048c:	bcf8      	pop	{r3, r4, r5, r6, r7}
+ 800048e:	bc08      	pop	{r3}
+ 8000490:	469e      	mov	lr, r3
+ 8000492:	4770      	bx	lr
