@@ -1,0 +1,9 @@
+../Src/i2c.c:13:6:i2c_init	4	static
+../Src/i2c.c:46:13:delay	24	static
+../Src/i2c.c:56:6:i2c1_scan_bus	16	static
+../Src/i2c.c:81:6:i2c1_MemoryWrite_Byte	16	static
+../Src/i2c.c:104:6:i2c1_Write_Byte	16	static
+../Src/i2c.c:121:6:i2c1_readMemoryByte	16	static
+../Src/i2c.c:150:6:i2c1_readByte	16	static
+../Src/i2c.c:186:6:i2c1_readMemoryMulti	16	static
+../Src/i2c.c:253:6:i2c1_writeMemoryMulti	24	static
